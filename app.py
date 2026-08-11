@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 from typing import Optional
 
 from fastapi import FastAPI, Header, HTTPException, Depends, Request
-from fastapi.responses import FileResponse
+from fastapi.responses import HTMLResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, EmailStr
 from starlette.middleware.base import BaseHTTPMiddleware
@@ -35,15 +35,17 @@ ADMIN_SECRET = os.environ.get("ADMIN_SECRET", "30012012")
 # Khởi tạo database
 init_db()
 
-# Mount thư mục static
-app.mount("/static", StaticFiles(directory="static"), name="static")
-
 # ============================================================
 # ROUTES
 # ============================================================
 @app.get("/")
 def root():
-    return FileResponse("static/admin.html")
+    """Trang chủ - đọc file admin.html trực tiếp"""
+    if os.path.exists("admin.html"):
+        with open("admin.html", "r", encoding="utf-8") as f:
+            return HTMLResponse(content=f.read())
+    else:
+        return {"message": "Admin page not found. Please create admin.html"}
 
 # ---- Xác thực admin ----
 def require_admin(x_admin_key: Optional[str] = Header(None)):
